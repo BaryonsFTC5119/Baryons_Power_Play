@@ -39,7 +39,9 @@ public class Singlemotor extends OpMode
     private Controller controller2;
     private boolean slowMode = false;
     Servo claw, upDown, spinner, openSesame;
-    String state = "end";
+    int index = 0;
+    double servoMotor[] = new double[10];
+    String activeServoMotor = "None";
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -53,6 +55,7 @@ public class Singlemotor extends OpMode
         claw = hardwareMap.servo.get("claw");
         spinner = hardwareMap.servo.get("spinner");
         openSesame = hardwareMap.servo.get("OS");
+        claw.setPosition(0.75);
         robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
     }
 
@@ -84,54 +87,78 @@ public class Singlemotor extends OpMode
         controller2.update();
         robot.loop();
 
-        final double x = Math.pow(controller.left_stick_x*1, 3.0);
         final double y = Math.pow(controller.left_stick_y*1, 3.0);
 
         //top Y, left X, bottom A, right B
 
-        if(controller2.Y()) {
-            robot.lr.setPower(y);
-            robot.lf.setPower(0);
-            robot.rr.setPower(0);
-            robot.rf.setPower(0);
-        }
-        else if(controller2.X()) {
-            robot.lf.setPower(y);
-            robot.lr.setPower(0);
-            robot.rr.setPower(0);
-            robot.rf.setPower(0);
-        }
-        else if(controller2.A()) {
-            robot.rr.setPower(y);
-            robot.lf.setPower(0);
-            robot.lr.setPower(0);
-            robot.rf.setPower(0);
-        }
-        else if(controller2.B()) {
-            robot.rf.setPower(y);
-            robot.lf.setPower(0);
-            robot.rr.setPower(0);
-            robot.lr.setPower(0);
+        if(controller.dpadLeftOnce()) {
+            if(index==0) {
+                index = servoMotor.length-1;
+            } else {
+                index--;
+            }
         }
 
-        if(controller2.rightBumperOnce()) {
-            claw.setPosition(claw.getPosition() +0.005);
-        } else if(controller2.leftBumperOnce()) {
-            claw.setPosition(claw.getPosition() - 0.005);
+        if(controller.dpadRightOnce()) {
+            if(index==servoMotor.length-1) {
+                index = 0;
+            } else {
+                index++;
+            }
         }
 
-        if(controller2.dpadLeftOnce()) {
-            spinner.setPosition(spinner.getPosition() + 0.005);
-        } else if(controller2.dpadRightOnce()) {
-            spinner.setPosition(spinner.getPosition() - 0.005);
+        switch(index) {
+            case 1:
+                activeServoMotor = "Left Front";
+                break;
+            case 2:
+                activeServoMotor = "Right Front";
+                break;
+            case 3:
+                activeServoMotor = "Left Rear";
+                break;
+            case 4:
+                activeServoMotor = "Right Rear";
+                break;
+            case 5:
+                activeServoMotor = "Updown";
+                break;
+            case 6:
+                activeServoMotor = "Spinner";
+                break;
+            case 7:
+                activeServoMotor = "Claw";
+                break;
+            case 8:
+                activeServoMotor = "Open Sesame";
+                break;
+            case 9:
+                activeServoMotor = "Trolley";
+                break;
+            default:
+                activeServoMotor = "None";
         }
 
-        if(controller2.dpadUpOnce()) {
-            upDown.setPosition(upDown.getPosition() + 0.005);
-        } else if(controller2.dpadLeftOnce()) {
-            upDown.setPosition(upDown.getPosition() - 0.005);
+        for(int i = 0; i<servoMotor.length; i++) {
+            if(i==index) {
+                servoMotor[i]=y;
+            } else {
+                servoMotor[i]=0;
+            }
         }
 
+
+        robot.lf.setPower(servoMotor[1]);
+        robot.rf.setPower(servoMotor[2]);
+        robot.lr.setPower(servoMotor[3]);
+        robot.rr.setPower(servoMotor[4]);
+        robot.upDown.setPosition(robot.upDown.getPosition()+(servoMotor[5]/1000));
+        robot.spinner.setPosition(robot.spinner.getPosition()+(servoMotor[6]/1000));
+        robot.claw.setPosition(robot.claw.getPosition()+(servoMotor[7]/1000));
+        openSesame.setPosition(openSesame.getPosition()+(servoMotor[8]/1000));
+        //robot.ltrolley.setTargetPosition((int)(robot.ltrolley.getCurrentPosition()+(servoMotor[9]/1000)));
+
+        telemetry.addData("Active Servo/Motor", activeServoMotor);
         telemetry.addData("1 Left Joystick Y", controller.left_stick_y);
         telemetry.addData("1 Left Joystick X", controller.left_stick_x);
         telemetry.addData("2 Left Joystick Y", controller2.left_stick_y);
@@ -145,7 +172,7 @@ public class Singlemotor extends OpMode
         telemetry.addData("claw wants to go to:  ", claw.getPosition());
         telemetry.addData("Open sesame wants to go to: ", openSesame.getPosition());
         telemetry.addData("LTrolley position: ", robot.ltrolley.getCurrentPosition());
-        telemetry.addData("Status ", state);
+        //telemetry.addData("Status ", state);
         telemetry.update();
     }
 

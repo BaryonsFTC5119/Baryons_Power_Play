@@ -45,24 +45,17 @@ public class RealRobot {
     static final double     COUNTS_PER_MOTOR_REV    = 145.6 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 0.5;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 3.77953 ;     // For figuring circumference || Previous value of 3.93701
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
     private final HardwareMap hardwareMap;
     private final Telemetry telemetry;
+
     public final DcMotor lf, lr, rf, rr;
-
     public final DcMotor ltrolley;
-    //public final DcMotor ltrolley;
 
-    //, carousel;
-
-    //public final Servo lchain, rchain, lclaw, rclaw;
-    //public final Servo lchain;
-    //public final Servo lclaw;
-
-
-
+    public final Servo claw;
+    public final Servo spinner;
+    public final Servo upDown;
 
     //public final Servo grabber,track, trayL, trayR;
 
@@ -124,20 +117,11 @@ public class RealRobot {
         rf = hardwareMap.dcMotor.get("rf");
         lr = hardwareMap.dcMotor.get("lr");
         rr = hardwareMap.dcMotor.get("rr");
-        //light = hardwareMap.dcMotor.get("light");
 
         ltrolley = hardwareMap.dcMotor.get("ltrolley");
-        //rtrolley = hardwareMap.dcMotor.get("rtrolley");
-        //carousel = hardwareMap.dcMotor.get("carousel");
-
-        //lchain = hardwareMap.servo.get("lchain");
-        //lclaw = hardwareMap.servo.get("lclaw");
-        /*lclaw = hardwareMap.servo.get("lclaw");
-        rclaw = hardwareMap.servo.get("rclaw");
-        lchain = hardwareMap.servo.get("lchain");
-        rchain = hardwareMap.servo.get("rchain");
-        armLevel1 = armLevel0 - 100;
-        armLevel2 = armLevel1 - 100;*/
+        claw = hardwareMap.servo.get("claw");
+        spinner = hardwareMap.servo.get("spinner");
+        upDown = hardwareMap.servo.get("updown");
 
         lf.setDirection(DcMotorSimple.Direction.FORWARD);
         lr.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -826,7 +810,7 @@ public class RealRobot {
             do {
                 loop();
 
-                double newPow = Math.abs(currHeading-convertHeading(degrees) / 400.0;
+                double newPow = Math.abs(currHeading-convertHeading(degrees)) / 400.0;
                 lf.setPower(-newPow);
                 lr.setPower(-newPow);
                 rf.setPower(newPow);
@@ -857,7 +841,7 @@ public class RealRobot {
             do {
                 loop();
 
-                double newPow = Math.abs(currHeading-convertHeading(degrees) / 400.0;
+                double newPow = Math.abs(currHeading-convertHeading(degrees)) / 400.0;
                 lf.setPower(-newPow);
                 lr.setPower(-newPow);
                 rf.setPower(newPow);
@@ -1014,13 +998,40 @@ public class RealRobot {
         return heading;
     }
 
-    /*public void outtake(int position)
-    {
-        lift.setTargetPosition(position);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setPower(.6);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sleep(800);
-    }*/
+    // Closes the claw - Fix position value
+    public void clawClose() {
+        claw.setPosition(0);
+    }
+
+    // Opens the claw - Fix position value
+    public void clawOpen() {
+        claw.setPosition(0);
+    }
+
+    // Sets the spinner to the upright position - Fix position value
+    public void spinnerUpright() {
+        spinner.setPosition(0);
+    }
+
+    // Sets the spinner to the flipped position - Fix position value
+    public void spinnerFlipped() {
+        spinner.setPosition(0);
+    }
+
+    // Sets upDown to the lowest grabbing position - Fix position value
+    public void upDownLow() {
+        upDown.setPosition(0);
+    }
+
+    // Sets upDown to the halfway up position - Fix position value
+    public void upDownMed() {
+        upDown.setPosition(0);
+    }
+
+    // Sets upDown to the fully up position - Fix position value
+    public void upDownHigh() {
+        upDown.setPosition(0);
+    }
+
 }
 

@@ -60,7 +60,7 @@ public class MaybeMecanum extends OpMode
         spinner = hardwareMap.servo.get("spinner");
         openSesame = hardwareMap.servo.get("OS");
         claw.setPosition(1.0);
-        robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
+        //robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
     }
 
     /*
@@ -184,13 +184,13 @@ public class MaybeMecanum extends OpMode
         // Moves Trolley down
         if (controller2.dpadDown()) {
             robot.ltrolley.setPower(-0.8);
-            state = "end";
+            //state = "end";
         }
 
         // Moves Trolley up
         if (controller2.dpadUp()) {
             robot.ltrolley.setPower(0.8);
-            state = "end";
+            //state = "end";
         }
 
         // Stops Trolley
@@ -209,7 +209,7 @@ public class MaybeMecanum extends OpMode
         }
 
         // State Machine
-
+    //start+2900 at top
         if(state.equals("lift")){
             claw.setPosition(0.95);
             int start=robot.ltrolley.getCurrentPosition();
