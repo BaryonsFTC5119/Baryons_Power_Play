@@ -811,10 +811,10 @@ public class RealRobot {
                 loop();
 
                 double newPow = Math.abs(currHeading-convertHeading(degrees)) / 400.0;
-                lf.setPower(-newPow);
-                lr.setPower(-newPow);
-                rf.setPower(newPow);
-                rr.setPower(newPow);
+                lf.setPower(newPow);
+                lr.setPower(newPow);
+                rf.setPower(-newPow);
+                rr.setPower(-newPow);
                 currHeading = convertHeading(getHeadingDegrees());
                 telemetry.addData("Heading", getHeadingDegrees());
                 telemetry.addData("Absolute", Math.abs(degrees));
@@ -834,10 +834,10 @@ public class RealRobot {
             rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            lf.setPower(0.25);
-            lr.setPower(0.25);
-            rf.setPower(-0.25);
-            rr.setPower(-0.25);
+            lf.setPower(-0.25);
+            lr.setPower(-0.25);
+            rf.setPower(0.25);
+            rr.setPower(0.25);
             do {
                 loop();
 
