@@ -118,21 +118,31 @@ public class SleeveParking extends LinearOpMode {
             }
         }
 
+        // move to right place and cycle
+        coneStack();
+
+        robot.encoderDrive(0.5, 5.5, 'L');
+        robot.encoderDrive(0.5,15.5,'F');
+        sleep(500);
+        robot.rotateTo(0, 0.5);
+        sleep(500);
+
         //openSesame.setPosition(0.0);
         //drive forward, rotate, state machine
         if(coneNum==1) {
             robot.encoderDrive(0.5, 35, 'R');
-            sleep(500);
-            robot.encoderDrive(0.5,37.5,'B');
+            //sleep(500);
+            //robot.encoderDrive(0.5,37.5,'B');
         }
         else if(coneNum==3) {
             robot.encoderDrive(0.5, 34.5, 'L');
-            sleep(500);
-            robot.encoderDrive(0.5, 37.5, 'B');
-        } else {
-            robot.encoderDrive(0.5, 40.0, 'B');
-        }
-        robot.rotate(-185, 0.4);
+            //sleep(500);
+            //robot.encoderDrive(0.5, 37.5, 'B');
+        } //else {
+            //robot.encoderDrive(0.5, 40.0, 'B');
+        //}
+
+        /*robot.rotate(-185, 0.4);
         robot.ltrolley.setPower(-0.7);
         openSesame.setPosition(1.0);
         //Sleep until robot opens
@@ -145,7 +155,7 @@ public class SleeveParking extends LinearOpMode {
         openSesame.setPosition(0.0);
         sleep(2000);
         upDown.setPosition(1.0);
-        lclaw.setPosition(0.8);
+        lclaw.setPosition(0.8);*/
     }
 
     /**
@@ -180,6 +190,52 @@ public class SleeveParking extends LinearOpMode {
         // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
         tfod.loadModelFromFile(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
+    }
+
+    private void coneStack() {
+        int start = robot.ltrolley.getCurrentPosition();
+        robot.encoderDrive(0.5, 70, 'B'); // need to edit
+        sleep(500);
+        robot.rotateTo(100, 0.5);
+        sleep(1500);
+        robot.ltrolley.setPower(0.0);
+        upDown.setPosition(0.375);
+        sleep(500);
+        robot.encoderDrive(0.5,15.5,'B'); // need to edit
+        robot.encoderDrive(0.5, 5.5, 'R');
+
+        // get measurements and height
+        // drop first cone
+
+        //[0.436, 0.7094];
+        raiseCone(start, 0.436);
+        raiseCone(start, 0.425);
+        raiseCone(start, 0.394);
+        raiseCone(start, 0.375);
+        raiseCone(start, 0.358);
+    }
+
+    private void raiseCone(int start, double dist) {
+        // drop cone
+        robot.ltrolley.setTargetPosition(start + 4600); // change this
+        robot.ltrolley.setPower(0.7);
+        sleep(1500);
+        upDown.setPosition(1.0);
+        robot.spinner.setPosition(0.95);
+
+        // go down
+        sleep(1000);
+        robot.claw.setPosition(0.5);
+        sleep(250);
+
+        upDown.setPosition(0.7);
+        robot.ltrolley.setTargetPosition(robot.ltrolley.getCurrentPosition()-3000);
+        robot.ltrolley.setPower(-0.7);
+        upDown.setPosition(dist);
+
+        // grab cone
+        robot.spinner.setPosition(0.15);
+        sleep(925);
     }
 
     public void initialize() {
