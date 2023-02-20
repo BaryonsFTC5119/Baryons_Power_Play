@@ -203,34 +203,18 @@ public class MaybeMecanum extends OpMode
         }
 
         // State Machine
-    //start+2900 at top
         if(state.equals("lift")){
             elapsed.reset();
             robot.clawClose();
-            //int start = robot.ltrolley.getCurrentPosition();
             robot.upDownMed();
             robot.trolleyMed();
             robot.spinnerFlipped();
-            //robot.trolleyHalf();
-            /*robot.ltrolley.setTargetPosition(start+3050); //4600
-            robot.ltrolley.setPower(0.7);
-            robot.ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
-            //sleep(1500);
             while(robot.ltrolley.isBusy());
             elapsed.reset();
             robot.trolleyHigh();
             while(elapsed.milliseconds()<500);
             robot.upDownHigh();
-            //upDown.setPosition(1.0);
-            /*if(clawGrabPos) {
-                spinner.setPosition(0.95);
-                clawGrabPos = false;
-            } else {
-                spinner.setPosition(0.20);
-                clawGrabPos = true;
-            }*/
             while(robot.ltrolley.isBusy() || elapsed.milliseconds()<500);
-            //sleep(1500); // 1000
             state = "drop";
         }
 
@@ -238,7 +222,6 @@ public class MaybeMecanum extends OpMode
             robot.clawOpen();
             elapsed.reset();
             while(elapsed.milliseconds()<250);
-            //sleep(250);
             state = "return";
         }
 
@@ -247,33 +230,14 @@ public class MaybeMecanum extends OpMode
             robot.upDownMed();
             while(elapsed.milliseconds()<250);
             robot.trolleyLow();
-            /*robot.ltrolley.setTargetPosition(robot.ltrolley.getCurrentPosition()-3050); // 4600
-            robot.ltrolley.setPower(-0.7);
-            robot.ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
             robot.spinnerUpright();
-            /*
-            upDown.setPosition(0.375);
-            if(clawGrabPos) {
-                spinner.setPosition(0.95);
-                clawGrabPos = false;
-            } else {
-                spinner.setPosition(0.15);
-                clawGrabPos = true;
-            }
-            */
             while(robot.ltrolley.isBusy());
-            //sleep(1850);
             state = "stop";
         }
         if(state.equals("stop")) {
             robot.ltrolley.setPower(0);
             state = "end";
         }
-        /*
-        if(state.equals("end")){
-            robot.ltrolley.setPower(0);
-        }
-        */
 
 
 
