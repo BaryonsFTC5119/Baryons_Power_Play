@@ -56,7 +56,7 @@ public class Singlemotor extends OpMode
         spinner = hardwareMap.servo.get("spinner");
         openSesame = hardwareMap.servo.get("OS");
         claw.setPosition(0.75);
-        robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
+        robot.ltrolley.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /*
@@ -74,7 +74,7 @@ public class Singlemotor extends OpMode
     public void start() {
         runtime.reset();
         robot.resetHeading();
-        robot.ltrolley.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //robot.ltrolley.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.ltrolley.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
@@ -156,7 +156,8 @@ public class Singlemotor extends OpMode
         robot.spinner.setPosition(robot.spinner.getPosition()+(servoMotor[6]/1000));
         robot.claw.setPosition(robot.claw.getPosition()+(servoMotor[7]/1000));
         openSesame.setPosition(openSesame.getPosition()+(servoMotor[8]/1000));
-        //robot.ltrolley.setTargetPosition((int)(robot.ltrolley.getCurrentPosition()+(servoMotor[9]/1000)));
+        robot.ltrolley.setPower(servoMotor[9]/15);
+        //robot.ltrolley.setTargetPosition((int)(robot.ltrolley.getCurrentPosition()+servoMotor[9]*10));
 
         telemetry.addData("Active Servo/Motor", activeServoMotor);
         telemetry.addData("1 Left Joystick Y", controller.left_stick_y);

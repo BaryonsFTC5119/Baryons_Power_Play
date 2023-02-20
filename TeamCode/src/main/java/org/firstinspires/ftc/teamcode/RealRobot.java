@@ -57,6 +57,30 @@ public class RealRobot {
     public final Servo spinner;
     public final Servo upDown;
 
+    //Servo set to position constants
+    public final double CLAW_OPEN = 0.55;
+    public final double CLAW_CLOSE = 0.85;
+
+    public final double UPDOWN_LOW = 0.35;
+    public final double UPDOWN_MED = 0.75;
+    public final double UPDOWN_HIGH = 1.0;
+    public final double UPDOWN_5STACK = 0.435;
+    public final double UPDOWN_4STACK = 0.425;
+    public final double UPDOWN_3STACK = 0.395;
+    public final double UPDOWN_2STACK = 0.375;
+    public final double UPDOWN_1STACK = 0.355;
+
+    public final double SPINNER_FLIPPED = 0.99;
+    public final double SPINNER_UPRIGHT = 0.33;
+
+    public final int TROLLEY_LOW = 0;
+    public final int TROLLEY_MEDIUM = 2250;
+    public final int TROLLEY_HIGH = 3100;
+
+    public final double TROLLEY_POWER = 1.0;
+
+    public String state = "end";
+
     //public final Servo grabber,track, trayL, trayR;
 
     private final BNO055IMU imu;
@@ -68,6 +92,8 @@ public class RealRobot {
     private int armLevel1 = 0;
     private int armLevel2 = 0;
     private int zeroPosition = 0;
+
+
 
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     private static final boolean PHONE_IS_PORTRAIT = true  ;
@@ -860,123 +886,6 @@ public class RealRobot {
         }
     }
 
-    public void preciseRotate(double degrees, double power)
-    {
-        double endHeading = getHeadingDegrees()-degrees;
-        if(degrees > 0)
-        {
-            lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            lr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-            lf.setPower(-power);
-            lr.setPower(-power);
-            rf.setPower(power);
-            rr.setPower(power);
-            do {
-                loop();
-                telemetry.addData("Heading", getHeadingDegrees());
-                telemetry.addData("Absolute", Math.abs(degrees-getHeadingDegrees()));
-                telemetry.addData("Degrees", degrees);
-                telemetry.update();
-
-            } while(Math.abs(getHeadingDegrees()-endHeading) > 0.5);
-            lf.setPower(0);
-            lr.setPower(0);
-            rf.setPower(0);
-            rr.setPower(0);
-        }
-        else if(degrees < 0)
-        {
-            lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            lr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-            lf.setPower(power);
-            lr.setPower(power);
-            rf.setPower(-power);
-            rr.setPower(-power);
-            do {
-                loop();
-                telemetry.addData("Heading", getHeadingDegrees());
-                telemetry.addData("Absolute", Math.abs(degrees-getHeadingDegrees()));
-                telemetry.addData("Degrees", degrees);
-                telemetry.update();
-
-            }while(Math.abs(getHeadingDegrees()-endHeading) > 0.5);
-            lf.setPower(0);
-            lr.setPower(0);
-            rf.setPower(0);
-            rr.setPower(0);
-        }
-    }
-/*
-    public void rotateToAlso(double ending, double power)
-    {
-        double starting = getHeadingDegrees();
-        if(360-max(starting,ending)+min(starting,ending)<180 && starting + ending > 180) {
-            if(ending>starting)
-                clockwise = false;
-            else
-                clockwise = true;
-        } else {
-            if(ending>starting)
-                clockwise = true;
-            else
-                clockwise = false;
-        }
-        if(!clockwise) //CCW
-        {
-            lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            lr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-            lf.setPower(-power);
-            lr.setPower(-power);
-            rf.setPower(power);
-            rr.setPower(power);
-            do {
-                loop();
-                telemetry.addData("Heading", getHeadingDegrees());
-                telemetry.addData("Absolute", Math.abs(degrees-getHeadingDegrees()));
-                telemetry.addData("Degrees", degrees);
-                telemetry.update();
-
-            } while(Math.abs(getHeadingDegrees()-endHeading) > 4);
-            lf.setPower(0);
-            lr.setPower(0);
-            rf.setPower(0);
-            rr.setPower(0);
-        }
-        else //CW
-        {
-            lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            lr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-            lf.setPower(power);
-            lr.setPower(power);
-            rf.setPower(-power);
-            rr.setPower(-power);
-            do {
-                loop();
-                telemetry.addData("Heading", getHeadingDegrees());
-                telemetry.addData("Absolute", Math.abs(degrees-getHeadingDegrees()));
-                telemetry.addData("Degrees", degrees);
-                telemetry.update();
-
-            }while(Math.abs(getHeadingDegrees()-endHeading) > 4);
-            lf.setPower(0);
-            lr.setPower(0);
-            rf.setPower(0);
-            rr.setPower(0);
-        }
-    }
-*/
     public void useEncoders()
     {
         lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -985,52 +894,123 @@ public class RealRobot {
         rr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public double headingTo360(double heading) {
-        if(heading<0)
-            heading+=360;
-        return heading;
-    }
-
-    public double headingTo360() {
-        double heading = getHeadingDegrees();
-        if(heading<0)
-            heading+=360;
-        return heading;
-    }
-
-    // Closes the claw - Fix position value
     public void clawClose() {
-        claw.setPosition(0);
+        claw.setPosition(CLAW_CLOSE);
     }
 
-    // Opens the claw - Fix position value
     public void clawOpen() {
-        claw.setPosition(0);
+        claw.setPosition(CLAW_OPEN);
     }
 
-    // Sets the spinner to the upright position - Fix position value
+    public void clawToggle() {
+        if (claw.getPosition() <= CLAW_OPEN+0.1)
+            clawClose();
+        else
+            clawOpen();
+    }
+
     public void spinnerUpright() {
-        spinner.setPosition(0);
+        spinner.setPosition(SPINNER_UPRIGHT);
     }
 
-    // Sets the spinner to the flipped position - Fix position value
     public void spinnerFlipped() {
-        spinner.setPosition(0);
+        spinner.setPosition(SPINNER_FLIPPED);
     }
 
-    // Sets upDown to the lowest grabbing position - Fix position value
+    public void spinnerToggle() {
+        if(spinner.getPosition() <= SPINNER_UPRIGHT+0.1) {
+            spinnerFlipped();
+        } else {
+            spinnerUpright();
+        }
+    }
+
     public void upDownLow() {
-        upDown.setPosition(0);
+        upDown.setPosition(UPDOWN_LOW);
     }
 
-    // Sets upDown to the halfway up position - Fix position value
     public void upDownMed() {
-        upDown.setPosition(0);
+        upDown.setPosition(UPDOWN_MED);
     }
 
-    // Sets upDown to the fully up position - Fix position value
     public void upDownHigh() {
-        upDown.setPosition(0);
+        upDown.setPosition(UPDOWN_HIGH);
+    }
+
+    public void upDownCycle(int increment) {
+        if(increment>0) {
+            if(upDown.getPosition()>=UPDOWN_MED) {
+                upDown.setPosition(UPDOWN_HIGH);
+            } else if(upDown.getPosition()>=UPDOWN_LOW) {
+                upDown.setPosition(UPDOWN_MED);
+            }
+        } else {
+            if(upDown.getPosition()<=UPDOWN_MED) {
+                upDown.setPosition(UPDOWN_LOW);
+            } else if(upDown.getPosition()<=UPDOWN_HIGH) {
+                upDown.setPosition(UPDOWN_MED);
+            }
+        }
+    }
+
+    public void upDown5Stack() {
+        upDown.setPosition(UPDOWN_5STACK);
+    }
+
+    public void upDown4Stack() {
+        upDown.setPosition(UPDOWN_4STACK);
+    }
+
+    public void upDown3Stack() {
+        upDown.setPosition(UPDOWN_3STACK);
+    }
+
+    public void upDown2Stack() {
+        upDown.setPosition(UPDOWN_2STACK);
+    }
+
+    public void upDown1Stack() {
+        upDown.setPosition(UPDOWN_1STACK);
+    }
+
+    public void trolleyHigh() {
+        ltrolley.setTargetPosition(TROLLEY_HIGH);
+        ltrolley.setPower(TROLLEY_POWER);
+        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public void trolleyHalf() {
+        ltrolley.setTargetPosition(TROLLEY_HIGH/2);
+        ltrolley.setPower(TROLLEY_POWER);
+        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public void trolleyMed() {
+        ltrolley.setTargetPosition(TROLLEY_MEDIUM);
+        ltrolley.setPower((ltrolley.getCurrentPosition()>TROLLEY_MEDIUM ? -1 : 1) * TROLLEY_POWER);
+        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public void trolleyLow() {
+        ltrolley.setTargetPosition(TROLLEY_LOW);
+        ltrolley.setPower(-TROLLEY_POWER);
+        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public int getTrolleyHigh() {
+        return TROLLEY_HIGH;
+    }
+
+    public int getTrolleyMed() {
+        return TROLLEY_MEDIUM;
+    }
+
+    public int getTrolleyLow() {
+        return TROLLEY_LOW;
+    }
+
+    public double revTimeMillis(double pos1, double pos2, double revPerMin) {
+        return Math.abs(pos1-pos2)/revPerMin*6000;
     }
 
 }
