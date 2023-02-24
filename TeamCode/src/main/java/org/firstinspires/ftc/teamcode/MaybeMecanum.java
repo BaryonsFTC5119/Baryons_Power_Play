@@ -182,19 +182,18 @@ public class MaybeMecanum extends OpMode
         }
 
         if(state.equals("begin")) {
-            start = elapsed.milliseconds();
             robot.clawClose();
             robot.upDownMed();
             robot.trolleyHigh();
             state = "lift";
             if(robot.ltrolley.getCurrentPosition()>=robot.TROLLEY_HIGH/2) {
                 state = "rotate";
+                start = elapsed.milliseconds();
             }
         }
         if(state.equals("rotate")) {
-            start = elapsed.milliseconds();
             robot.spinnerFlipped();
-            if(start >= 250) {
+            if(elapsed.milliseconds() >= start + 250) {
                 state = "raiseToMed";
             }
         }
@@ -202,26 +201,20 @@ public class MaybeMecanum extends OpMode
             robot.trolleyHigh();
             robot.upDownHigh();
             if(!robot.ltrolley.isBusy()) {
-                state = "upDownHigh";
-            }
-        }
-        if(state.equals("upDownHigh")) {
-            robot.upDownHigh();
-            if(!robot.ltrolley.isBusy()) {
                 state = "drop";
+                start = elapsed.milliseconds();
             }
         }
         if(state.equals("drop")) {
-            start = elapsed.milliseconds();
             robot.clawOpen();
-            if(start>=250) {
+            if(elapsed.milliseconds() >= start + 250) {
                 state = "return";
+                start = elapsed.milliseconds();
             }
         }
         if(state.equals("return")) {
-            start = elapsed.milliseconds();
             robot.upDownMed();
-            if (start >= 250) {
+            if (elapsed.milliseconds() >= start + 250) {
                 state = "resetTrolley";
             }
         }
