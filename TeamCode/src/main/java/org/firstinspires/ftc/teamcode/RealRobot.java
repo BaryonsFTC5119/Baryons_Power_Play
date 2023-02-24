@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -64,22 +66,29 @@ public class RealRobot {
     public final double UPDOWN_LOW = 0.35;
     public final double UPDOWN_MED = 0.75;
     public final double UPDOWN_HIGH = 1.0;
+
     public final double UPDOWN_5STACK = 0.435;
     public final double UPDOWN_4STACK = 0.425;
     public final double UPDOWN_3STACK = 0.395;
     public final double UPDOWN_2STACK = 0.375;
     public final double UPDOWN_1STACK = 0.355;
+    public final double[] UPDOWN_STACK = {UPDOWN_1STACK, UPDOWN_2STACK, UPDOWN_3STACK, UPDOWN_4STACK, UPDOWN_5STACK};
 
     public final double SPINNER_FLIPPED = 0.99;
     public final double SPINNER_UPRIGHT = 0.33;
 
     public final int TROLLEY_LOW = 0;
+    public final int TROLLEY_SMALL = 0; // Find value for small pole
     public final int TROLLEY_MEDIUM = 2250;
-    public final int TROLLEY_HIGH = 3100;
+    public final int TROLLEY_HIGH = 3030;
+    public final int[] TROLLEY_CYCLE = {TROLLEY_LOW, TROLLEY_SMALL, TROLLEY_MEDIUM, TROLLEY_HIGH};
 
-    public final double TROLLEY_POWER = 1.0;
+    public final double TROLLEY_POWER = 0.8;
+    public String trolleyState = "low";
 
     public String state = "end";
+
+    public ElapsedTime elapsed = new ElapsedTime();
 
     //public final Servo grabber,track, trayL, trayR;
 
@@ -174,7 +183,7 @@ public class RealRobot {
         //zeroPosition = slide.getCurrentPosition();
     }
 
-    private void setMotorMode(DcMotor.RunMode mode, DcMotor... motors) {
+    public void setMotorMode(DcMotor.RunMode mode, DcMotor... motors) {
         for (DcMotor motor : motors) {
             motor.setMode(mode);
         }
@@ -541,7 +550,7 @@ public class RealRobot {
      */
 
     public void encoderDrive(double power, double distance, char direction) {
-        distance *= 2;
+        distance *= 3;
         setMotorZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // How many turns do I need the wheels to go [distance] inches?
@@ -836,7 +845,7 @@ public class RealRobot {
             do {
                 loop();
 
-                double newPow = Math.abs(currHeading-convertHeading(degrees)) / 400.0;
+                double newPow = Math.abs(currHeading-convertHeading(degrees)) / 300.0;
                 lf.setPower(newPow);
                 lr.setPower(newPow);
                 rf.setPower(-newPow);
@@ -940,36 +949,47 @@ public class RealRobot {
     public void upDownCycle(int increment) {
         if(increment>0) {
             if(upDown.getPosition()>=UPDOWN_MED) {
-                upDown.setPosition(UPDOWN_HIGH);
+                upDownHigh();
             } else if(upDown.getPosition()>=UPDOWN_LOW) {
-                upDown.setPosition(UPDOWN_MED);
+                upDownMed();
             }
         } else {
             if(upDown.getPosition()<=UPDOWN_MED) {
-                upDown.setPosition(UPDOWN_LOW);
+                upDownLow();
             } else if(upDown.getPosition()<=UPDOWN_HIGH) {
-                upDown.setPosition(UPDOWN_MED);
+                upDownMed();
             }
         }
+
     }
 
     public void upDown5Stack() {
+        upDown.setPosition(UPDOWN_LOW +0.10);
+        waitMillis(200);
         upDown.setPosition(UPDOWN_5STACK);
     }
 
     public void upDown4Stack() {
+        upDown.setPosition(UPDOWN_LOW +0.10);
+        waitMillis(200);
         upDown.setPosition(UPDOWN_4STACK);
     }
 
     public void upDown3Stack() {
+        upDown.setPosition(UPDOWN_LOW +0.10);
+        waitMillis(200);
         upDown.setPosition(UPDOWN_3STACK);
     }
 
     public void upDown2Stack() {
+        upDown.setPosition(UPDOWN_LOW +0.10);
+        waitMillis(200);
         upDown.setPosition(UPDOWN_2STACK);
     }
 
     public void upDown1Stack() {
+        upDown.setPosition(UPDOWN_LOW +0.10);
+        waitMillis(200);
         upDown.setPosition(UPDOWN_1STACK);
     }
 
@@ -977,41 +997,147 @@ public class RealRobot {
         ltrolley.setTargetPosition(TROLLEY_HIGH);
         ltrolley.setPower(TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    public void trolleyHalf() {
-        ltrolley.setTargetPosition(TROLLEY_HIGH/2);
-        ltrolley.setPower(TROLLEY_POWER);
-        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        trolleyState = "high";
     }
 
     public void trolleyMed() {
         ltrolley.setTargetPosition(TROLLEY_MEDIUM);
         ltrolley.setPower((ltrolley.getCurrentPosition()>TROLLEY_MEDIUM ? -1 : 1) * TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        trolleyState = "medium";
+    }
+
+    public void trolleySmall() {
+        ltrolley.setTargetPosition(TROLLEY_SMALL);
+        ltrolley.setPower((ltrolley.getCurrentPosition()>TROLLEY_SMALL ? -1 : 1) * TROLLEY_POWER);
+        ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        trolleyState = "small";
     }
 
     public void trolleyLow() {
         ltrolley.setTargetPosition(TROLLEY_LOW);
         ltrolley.setPower(-TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        trolleyState = "low";
     }
 
-    public int getTrolleyHigh() {
-        return TROLLEY_HIGH;
+    public void trolleyCycle(int increment) {
+        if (increment > 0) {
+            if (trolleyState.equals("medium")) {
+                trolleyHigh();
+            } else if (trolleyState.equals("small")) {
+                trolleyMed();
+            } else if (trolleyState.equals("low")) {
+                trolleySmall();
+            }
+        } else {
+            if (trolleyState.equals("small")) {
+                trolleyLow();
+            } else if (trolleyState.equals("medium")) {
+                trolleySmall();
+            } else if (trolleyState.equals("high")) {
+                trolleyMed();
+            }
+        }
     }
 
-    public int getTrolleyMed() {
-        return TROLLEY_MEDIUM;
+    public void setTrolleyState() {
+        if(ltrolley.getCurrentPosition()<TROLLEY_SMALL)
+            trolleyState = "low";
+        else if(ltrolley.getCurrentPosition()<TROLLEY_MEDIUM)
+            trolleyState = "small";
+        else if(ltrolley.getCurrentPosition()<TROLLEY_HIGH)
+            trolleyState = "medium";
+        else if(ltrolley.getCurrentPosition()<TROLLEY_MEDIUM)
+            trolleyState = "high";
     }
 
-    public int getTrolleyLow() {
-        return TROLLEY_LOW;
+    public void setTrolleyState(String state) {
+        trolleyState = state;
     }
 
     public double revTimeMillis(double pos1, double pos2, double revPerMin) {
         return Math.abs(pos1-pos2)/revPerMin*6000;
     }
+
+    /**
+     * state machine
+     * lift: make the trolley go up set target position set motor to run to position, turn power on, start lifting upDown to save time
+     * drop claw: upDown should be fully extended at this point, rotate arm with spinner and open claw
+     * return: make trolley come down, retract upDown, rotate claw back with spinner
+     * stop: fully stops trolley, add 'state = end' statements to other commands to be able to override if machine goes wrong
+     * end: state machine not in use
+     */
+
+    public void stateMachine() {
+        state = "lift";
+        stateMachineLift();
+        stateMachineDrop();
+        stateMachineReturn();
+        stateMachineStop();
+    }
+
+    public void stateMachineLift() {
+        if(state.equals("lift")){
+            clawClose();
+            upDownMed();
+            trolleyHigh();
+            while(ltrolley.getCurrentPosition()<TROLLEY_HIGH/2);
+            spinnerFlipped();
+            while(ltrolley.getCurrentPosition()<TROLLEY_MEDIUM);
+            elapsed.reset();
+            while(elapsed.milliseconds()<500);
+            upDownHigh();
+            while(ltrolley.isBusy());
+            state = "drop";
+        }
+    }
+
+    public void stateMachineDrop() {
+        clawOpen();
+        elapsed.reset();
+        while(elapsed.milliseconds()<250);
+        state = "return";
+    }
+
+    public void stateMachineReturn() {
+        elapsed.reset();
+        upDownMed();
+        while(elapsed.milliseconds()<250);
+        trolleyLow();
+        spinnerUpright();
+        while(ltrolley.isBusy());
+        state = "stop";
+    }
+
+    public void stateMachineStop() {
+        ltrolley.setPower(0);
+        state = "end";
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void waitMillis(int millis) {
+        elapsed.reset();
+        while(elapsed.milliseconds()<millis);
+    }
+
+    public void stateMachine5Stack(int numCones) {
+        stateMachine();
+
+        for(int i = 4; i>=5-numCones; i--) {
+            upDown.setPosition(UPDOWN_STACK[i]);
+            waitMillis(250);
+            clawClose();
+            waitMillis(250);
+            stateMachine();
+        }
+    }
+
+
+
 
 }
 

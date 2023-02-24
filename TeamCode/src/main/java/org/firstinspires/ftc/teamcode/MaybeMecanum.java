@@ -32,20 +32,18 @@ public class MaybeMecanum extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime elapsed = new ElapsedTime();
-    private DcMotor lr = null;
-    private DcMotor rr = null;
+    private double start;
+    //private DcMotor lr = null;
+    //private DcMotor rr = null;
     private RealRobot robot;
     private Controller controller;
     private Controller controller2;
     private boolean arcadeMode = false;
     private boolean slowMode = false;
-    //private boolean clawGrabPos = true;
     private boolean headingReset = false;
     public static double governor = 0.7;
-    int start;
     Servo claw, upDown, spinner, openSesame;
     String state = "end";
-    //private ElapsedTime time = new Ela
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -61,8 +59,6 @@ public class MaybeMecanum extends OpMode
         claw = hardwareMap.servo.get("claw");
         spinner = hardwareMap.servo.get("spinner");
         openSesame = hardwareMap.servo.get("OS");
-        //claw.setPosition(0.55);
-        //robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
     }
 
     /*
@@ -71,13 +67,9 @@ public class MaybeMecanum extends OpMode
     @Override
     public void init_loop() {
         controller.update();
-        /*if (controller.AOnce()) {
-            //arcadeMode = !arcadeMode;
-        }*/
         if (controller.XOnce()) {
             slowMode = !slowMode;
         }
-        telemetry.addData("Arcade Mode (a)", arcadeMode ? "YES" : "no.");
         telemetry.addData("Slow Mode (s)", slowMode ? "YES" : "no.");
         telemetry.update();
     }
@@ -89,8 +81,9 @@ public class MaybeMecanum extends OpMode
     public void start() {
         elapsed.reset();
         robot.resetHeading();
-        //robot.ltrolley.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.setTrolleyState();
         robot.ltrolley.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.setMotorMode(DcMotor.RunMode.RUN_USING_ENCODER, robot.lf, robot.rf, robot.rr, robot.lr);
     }
 
     /*
@@ -101,10 +94,6 @@ public class MaybeMecanum extends OpMode
         controller.update();
         controller2.update();
         robot.loop();
-
-        telemetry.addData("Arcade Mode (a)", arcadeMode ? "YES" : "no.");
-        telemetry.addData("Slow Mode (s)", slowMode ? "YES" : "no.");
-        telemetry.addData("Heading", robot.getHeadingDegrees());
 
         final double x = Math.pow(controller.left_stick_x * 1, 3.0);
         final double y = Math.pow(controller.left_stick_y * 1, 3.0);
@@ -126,16 +115,12 @@ public class MaybeMecanum extends OpMode
          * Right (Circle): B
          */
 
-        // Toggles between slowmode and not
+        // Toggles between slowmode
         if (controller.XOnce()) {
             slowMode = !slowMode;
         }
 
-        // Starts State Machine
-        if (controller.dpadLeftOnce()) {
-            state = "lift";
-            start = robot.ltrolley.getCurrentPosition();
-        }
+
 
         // Rotates to heading 0
         if (controller.BOnce()) {
@@ -145,51 +130,36 @@ public class MaybeMecanum extends OpMode
                 robot.rotateTo(180, 0.4);
         }
 
-        //Toggles Claw Spinner position
+        // Toggles Claw Spinner position
         if (controller.leftBumperOnce()) {
             robot.spinnerToggle();
-            /*if (clawGrabPos) {
-                spinner.setPosition(0.95); // Claw Spinner Upright
-                clawGrabPos = false;
-            } else {
-                spinner.setPosition(0.15); // Claw Spinner Flipped
-                clawGrabPos = true;
-            }*/
         }
 
-        // Lowers Trolley Arm
+        // Raises Arm
         if (controller.YOnce()) {
-            /*if (upDown.getPosition() < 1)
-                upDown.setPosition(upDown.getPosition() + 0.05);*/
             robot.upDownCycle(1);
         }
 
-        // Raises Trolley Arm
+        // Lowers Arm
         if (controller.AOnce()) {
-            /*if (upDown.getPosition() > 0.375)
-                upDown.setPosition(upDown.getPosition() - 0.05);*/
             robot.upDownCycle(-1);
         }
 
+        // Toggles Claw
         if (controller.rightBumperOnce()) {
             robot.clawToggle();
         }
 
-        // Moves Trolley down
-        if (controller.dpadDown()) {
-            robot.ltrolley.setPower(-0.8);
-            state = "end";
-        }
-
         // Moves Trolley up
-        if (controller.dpadUp()) {
-            robot.ltrolley.setPower(0.8);
-            state = "end";
+        if (controller.dpadUpOnce()) {
+            robot.trolleyCycle(1);
+            //robot.ltrolley.setPower(0.8);
         }
 
-        // Stops Trolley
-        if (!controller.dpadDown() && !controller.dpadUp()) {
-            robot.ltrolley.setPower(0);
+        // Moves Trolley down
+        if (controller.dpadDownOnce()) {
+            robot.trolleyCycle(-1);
+            //robot.ltrolley.setPower(-0.8);
         }
 
         // Opens Opener
@@ -202,61 +172,76 @@ public class MaybeMecanum extends OpMode
             openSesame.setPosition(openSesame.getPosition() - 0.1);
         }
 
-        // State Machine
-        if(state.equals("lift")){
-            elapsed.reset();
+        // Starts State Machine
+        if (controller.dpadLeftOnce()) {
+            if(robot.getState().equals("end")) {
+                state = "begin";
+            } else {
+                state = "end";
+            }
+        }
+
+        if(state.equals("begin")) {
+            start = elapsed.milliseconds();
             robot.clawClose();
             robot.upDownMed();
-            robot.trolleyMed();
-            robot.spinnerFlipped();
-            while(robot.ltrolley.isBusy());
-            elapsed.reset();
             robot.trolleyHigh();
-            while(elapsed.milliseconds()<500);
+            state = "lift";
+            if(robot.ltrolley.getCurrentPosition()>=robot.TROLLEY_HIGH/2) {
+                state = "rotate";
+            }
+        }
+        if(state.equals("rotate")) {
+            start = elapsed.milliseconds();
+            robot.spinnerFlipped();
+            if(start >= 250) {
+                state = "raiseToMed";
+            }
+        }
+        if(state.equals("raiseToMed")) {
+            robot.trolleyHigh();
             robot.upDownHigh();
-            while(robot.ltrolley.isBusy() || elapsed.milliseconds()<500);
-            state = "drop";
+            if(!robot.ltrolley.isBusy()) {
+                state = "upDownHigh";
+            }
         }
-
-        if(state.equals("drop")){
+        if(state.equals("upDownHigh")) {
+            robot.upDownHigh();
+            if(!robot.ltrolley.isBusy()) {
+                state = "drop";
+            }
+        }
+        if(state.equals("drop")) {
+            start = elapsed.milliseconds();
             robot.clawOpen();
-            elapsed.reset();
-            while(elapsed.milliseconds()<250);
-            state = "return";
+            if(start>=250) {
+                state = "return";
+            }
         }
-
-        if(state.equals("return")){
-            elapsed.reset();
+        if(state.equals("return")) {
+            start = elapsed.milliseconds();
             robot.upDownMed();
-            while(elapsed.milliseconds()<250);
-            robot.trolleyLow();
+            if (start >= 250) {
+                state = "resetTrolley";
+            }
+        }
+        if(state.equals("resetTrolley")){
             robot.spinnerUpright();
-            while(robot.ltrolley.isBusy());
-            state = "stop";
+            robot.trolleyLow();
+            if(!robot.ltrolley.isBusy()) {
+                state = "stop";
+            }
         }
         if(state.equals("stop")) {
             robot.ltrolley.setPower(0);
             state = "end";
         }
 
-
-
-
-
-/**
- * state machine
- * lift: make the trolley go up set target position set motor to run to position, turn power on, start lifting upDown to save time
- * drop claw: upDown should be fully extended at this point, rotate arm with spinner and open claw
- * return: make trolley come down, retract upDown, rotate claw back with spinner
- * stop: fully stops trolley
- * end: do nothing, add state = end statements to other commands to be able to override if machine goes wrong
- */
-
-
-
-
         robot.setMotors(lf, lr, rf, rr);
 
+        telemetry.addData("Arcade Mode (a)", arcadeMode ? "YES" : "no.");
+        telemetry.addData("Slow Mode (s)", slowMode ? "YES" : "no.");
+        telemetry.addData("Heading", robot.getHeadingDegrees());
         telemetry.addData("LF Position", robot.lf.getCurrentPosition());
         telemetry.addData("RF Position", robot.rf.getCurrentPosition());
         telemetry.addData("LR Position", robot.lr.getCurrentPosition());

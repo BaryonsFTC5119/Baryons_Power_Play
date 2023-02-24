@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -20,6 +22,7 @@ public class ConeParking5Stack extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "/sdcard/FIRST/tflitemodels/PowerPlayV2.tflite";
     // private static final String TFOD_MODEL_FILE  = "/sdcard/FIRST/tflitemodels/CustomTeamModel.tflite";
     Servo lclaw, lchain, openSesame, upDown;
+    ElapsedTime elapsed = new ElapsedTime();
 
     private static final String[] LABELS = {
             "1", // banana
@@ -72,7 +75,7 @@ public class ConeParking5Stack extends LinearOpMode {
         telemetry.update();
         waitForStart();
 
-        if (opModeIsActive()) {
+        /*if (opModeIsActive()) {
             while (opModeIsActive()&&!detected) {
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
@@ -116,10 +119,14 @@ public class ConeParking5Stack extends LinearOpMode {
                     }
                 }
             }
-        }
+        }*/
 
         // move to right place and cycle
+
         coneStack();
+
+
+
         /*
         robot.encoderDrive(0.5, 5.5, 'L');
         robot.encoderDrive(0.5,15.5,'F');
@@ -193,40 +200,51 @@ public class ConeParking5Stack extends LinearOpMode {
     }
 
     private void coneStack() {
+
         int start = robot.ltrolley.getCurrentPosition();
-        /*robot.encoderDrive(0.5, 70, 'B'); // need to edit
+        robot.encoderDrive(0.5, 47.5, 'B'); // need to edit
         sleep(500);
-        robot.rotateTo(100, 0.5);
-        sleep(1500);*/
+        robot.rotateTo(-107.02, 0.5);
+        sleep(1500);
         robot.ltrolley.setPower(0.0);
         robot.upDownMed();
-        /*sleep(500);
-        robot.encoderDrive(0.5,15.5,'B'); // need to edit
-        robot.encoderDrive(0.5, 5.5, 'R');
-        */
+        robot.encoderDrive(0.5, 6, 'B');
+        sleep(500);
+        robot.encoderDrive(0.5,7.5,'R'); // need to edit
+        sleep(500);
+        robot.rotateTo(-115.02, 0.5);
+
+        /*robot.ltrolley.setTargetPosition(robot.TROLLEY_LOW); // change this
+        robot.ltrolley.setPower(0.7);
+        openSesame.setPosition(1.0);*/
+
         // get measurements and height
         // drop first cone
+       // robot.stateMachine5Stack(5);
+
 
         //[0.436, 0.7094];
-        raiseCone(start, 0.717);
+        /*raiseCone(start, 0.717);
         raiseCone(start, 0.436);
         raiseCone(start, 0.425);
         raiseCone(start, 0.394);
         raiseCone(start, 0.375);
-        raiseCone(start, 0.358);
+        raiseCone(start, 0.358);*/
     }
 
     private void raiseCone(int start, double dist) {
         // drop cone
         robot.ltrolley.setTargetPosition(start - 3000); // change this
         robot.ltrolley.setPower(0.7);
+        openSesame.setPosition(1.0);
+
         sleep(1500);
-        upDown.setPosition(1.0);
+        robot.upDownHigh();
         robot.spinner.setPosition(0.95);
 
         // go down
         sleep(1000);
-        robot.claw.setPosition(0.5);
+        robot.clawOpen();
         sleep(250);
 
         upDown.setPosition(0.7);
@@ -237,6 +255,8 @@ public class ConeParking5Stack extends LinearOpMode {
         // grab cone
         robot.spinner.setPosition(0.15);
         sleep(925);
+        robot.clawClose();
+        sleep(500);
     }
 
     public void initialize() {
@@ -246,16 +266,15 @@ public class ConeParking5Stack extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
         robot = new RealRobot(hardwareMap, telemetry);
+
         allMotors.add(robot.lf);
         allMotors.add(robot.rf);
         allMotors.add(robot.lr);
         allMotors.add(robot.rr);
 
-        //robot.carriage.setPosition(.77);
-        //robot.carriage.setDirection(Servo.Direction.FORWARD);
-
         for (DcMotor dcMotor : allMotors) {
             dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            dcMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         robot.loop();
@@ -263,12 +282,8 @@ public class ConeParking5Stack extends LinearOpMode {
         lclaw = hardwareMap.servo.get("claw");
         upDown = hardwareMap.servo.get("updown");
         openSesame = hardwareMap.servo.get("OS");
-        lclaw.setPosition(0.8);
-        //lchain.scaleRange(0,0.8);
-        /*robot.ltrolley.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);*/
+
+        robot.clawClose();
         robot.resetHeading();
-
-
-
     }
 }
