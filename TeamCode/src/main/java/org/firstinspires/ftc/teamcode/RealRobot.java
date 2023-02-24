@@ -78,7 +78,7 @@ public class RealRobot {
     public final double SPINNER_UPRIGHT = 0.33;
 
     public final int TROLLEY_LOW = 0;
-    public final int TROLLEY_SMALL = 0; // Find value for small pole
+    public final int TROLLEY_SMALL = 1500; // Find value for small pole
     public final int TROLLEY_MEDIUM = 2250;
     public final int TROLLEY_HIGH = 3030;
     public final int[] TROLLEY_CYCLE = {TROLLEY_LOW, TROLLEY_SMALL, TROLLEY_MEDIUM, TROLLEY_HIGH};
@@ -995,6 +995,7 @@ public class RealRobot {
 
     public void trolleyHigh() {
         ltrolley.setTargetPosition(TROLLEY_HIGH);
+        ((DcMotorEx)ltrolley).setTargetPositionTolerance(12);
         ltrolley.setPower(TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         trolleyState = "high";
@@ -1002,6 +1003,7 @@ public class RealRobot {
 
     public void trolleyMed() {
         ltrolley.setTargetPosition(TROLLEY_MEDIUM);
+        ((DcMotorEx)ltrolley).setTargetPositionTolerance(12);
         ltrolley.setPower((ltrolley.getCurrentPosition()>TROLLEY_MEDIUM ? -1 : 1) * TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         trolleyState = "medium";
@@ -1009,6 +1011,7 @@ public class RealRobot {
 
     public void trolleySmall() {
         ltrolley.setTargetPosition(TROLLEY_SMALL);
+        ((DcMotorEx)ltrolley).setTargetPositionTolerance(12);
         ltrolley.setPower((ltrolley.getCurrentPosition()>TROLLEY_SMALL ? -1 : 1) * TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         trolleyState = "small";
@@ -1016,6 +1019,7 @@ public class RealRobot {
 
     public void trolleyLow() {
         ltrolley.setTargetPosition(TROLLEY_LOW);
+        ((DcMotorEx)ltrolley).setTargetPositionTolerance(12);
         ltrolley.setPower(-TROLLEY_POWER);
         ltrolley.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         trolleyState = "low";
